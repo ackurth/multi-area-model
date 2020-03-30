@@ -530,6 +530,9 @@ def compute_Model_params(out_label='', mode='default'):
     ratio_E = relative_numbers_model_new['23aE']/sum_E
     ratio_I = relative_numbers_model_new['23aI']/sum_I
 
+    ratio_tot=(relative_numbers_model_new['23aE']+relative_numbers_model_new['23aI'])/ \
+            (sum_E + sum_I)
+
 
     relative_numbers_model = {'23E': 0.0, '23I': 0.0,
                               '4E': 0.0, '4I': 0.0,
@@ -595,7 +598,6 @@ def compute_Model_params(out_label='', mode='default'):
                         synapse_to_cell_body_basis.update(
                             {v: {i: cond_prob}})
 
-
     # Make synapse_to_cell_body area-specific to account for
     # missing layers in some areas (area TH)
     synapse_to_cell_body = {}
@@ -649,6 +651,17 @@ def compute_Model_params(out_label='', mode='default'):
         synapse_to_cell_body_instance['23a'] = synapse_to_cell_body_instance['23']
         synapse_to_cell_body_instance['3b'] = synapse_to_cell_body_instance['23']
         synapse_to_cell_body_instance.pop('23')
+
+    for area in area_list:
+        for layer, probs in synapse_to_cell_body[area].items():
+            if layer in ['23a', '3b']:
+                for pop in probs:
+                    if layer == '23a':
+                        synapse_to_cell_body[area][layer][pop] = ratio_tot* \
+                                synapse_to_cell_body[area][layer][pop]
+                    else:
+                        synapse_to_cell_body[area][layer][pop] = (1-ratio_tot)* \
+                                synapse_to_cell_body[area][layer][pop]
 
     def num_CC_synapses(target_area, target_pop, source_area, source_pop):
         """
